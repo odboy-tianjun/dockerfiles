@@ -2,13 +2,18 @@
 应用环境镜像定制
 
 # 目录说明
-- CompileEnv 编译环境
-- RuntimeEnv 运行环境
-- CompositeEnv 编译与运行环境
+- Base
+  - Compile 编译环境
+  - Runtime 运行环境
+  - Composite 编译与运行环境
 - Monitor 监控系统
+- Log 日志系统
+- Other 未分类
+  - Zookeeper
+  - DubboAdmin
 
 # 支持的语言
-- Binary 适用于amd64位二进制可执行程序
-- DotNet 适用于dotnet应用
-- Java 适用于java应用
-- Python 适用于python应用
+- binary 适用于amd64位二进制可执行程序
+- dotnet 适用于dotnet应用
+- java 适用于java应用
+- python 适用于python应用

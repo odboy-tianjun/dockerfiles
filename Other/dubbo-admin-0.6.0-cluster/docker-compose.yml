@@ -1,0 +1,82 @@
+version: '3'
+
+networks:
+  dubbo-network:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.23.0.0/24"
+
+services:
+  zookeeper1:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/zookeeper:3.9.3      # 原镜像`zookeeper:3.9.3`
+    container_name: zookeeper1
+    restart: unless-stopped
+    volumes:
+      - "./zookeeper1/data:/data"
+      - "./zookeeper1/datalog:/datalog"
+      - "./zookeeper1/zoo.cfg:/conf/zoo.cfg"
+    environment:
+      ZOO_MY_ID: 1
+    ports:
+      - "2181:2181"
+    networks:
+      dubbo-network:
+        ipv4_address: 172.23.0.81
+  zookeeper2:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/zookeeper:3.9.3      # 原镜像`zookeeper:3.9.3`
+    container_name: zookeeper2
+    restart: unless-stopped
+    volumes:
+      - "./zookeeper2/data:/data"
+      - "./zookeeper2/datalog:/datalog"
+      - "./zookeeper2/zoo.cfg:/conf/zoo.cfg"
+    environment:
+      ZOO_MY_ID: 2
+    ports:
+      - "2182:2181"
+    networks:
+      dubbo-network:
+        ipv4_address: 172.23.0.82
+  zookeeper3:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/zookeeper:3.9.3      # 原镜像`zookeeper:3.9.3`
+    container_name: zookeeper3
+    restart: unless-stopped
+    volumes:
+      - "./zookeeper3/data:/data"
+      - "./zookeeper3/datalog:/datalog"
+      - "./zookeeper3/zoo.cfg:/conf/zoo.cfg"
+    environment:
+      ZOO_MY_ID: 3
+    ports:
+      - "2183:2181"
+    networks:
+      dubbo-network:
+        ipv4_address: 172.23.0.83
+  dubbo-admin:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/dubbo-admin:0.6.0     # 原镜像`apache/dubbo-admin:0.6.0`
+    container_name: dubbo-admin
+    restart: unless-stopped
+    volumes:
+      # application.properties配置文件可参考：https://github.com/apache/dubbo-admin/blob/develop/docker/latest/application.properties
+      - "./dubbo-admin/config:/config"
+    environment:
+      "admin.registry.address": zookeeper://172.23.0.81:2181
+      "admin.config-center": zookeeper://172.23.0.81:2181
+      "admin.metadata-report.address": zookeeper://172.23.0.81:2181
+      "admin.root.user.name": root
+      "admin.root.user.password": root
+      "JAVA_OPTS": "-Xmx100M -Xms100M -XX:+UseG1GC"
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    links:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    ports:
+      - "38080:38080"
+    networks:
+      dubbo-network:
+        ipv4_address: 172.23.0.71

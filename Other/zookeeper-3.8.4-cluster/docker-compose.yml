@@ -1,0 +1,56 @@
+version: '3.8'
+
+# 网桥 -> 方便相互通讯
+networks:
+  zookeeper:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.23.0.0/24"
+
+services:
+  zookeeper1:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/zookeeper:3.8.4      # 原镜像`zookeeper:3.8.4`
+    container_name: zookeeper1
+    restart: unless-stopped
+    volumes:
+      - "./zookeeper1/data:/data"
+      - "./zookeeper1/datalog:/datalog"
+      - "./zookeeper1/zoo.cfg:/conf/zoo.cfg"
+    environment:
+      ZOO_MY_ID: 1
+    ports:
+      - "2181:2181"
+    networks:
+      zookeeper:
+        ipv4_address: 172.23.0.81
+  zookeeper2:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/zookeeper:3.8.4      # 原镜像`zookeeper:3.8.4`
+    container_name: zookeeper2
+    restart: unless-stopped
+    volumes:
+      - "./zookeeper2/data:/data"
+      - "./zookeeper2/datalog:/datalog"
+      - "./zookeeper2/zoo.cfg:/conf/zoo.cfg"
+    environment:
+      ZOO_MY_ID: 2
+    ports:
+      - "2182:2181"
+    networks:
+      zookeeper:
+        ipv4_address: 172.23.0.82
+  zookeeper3:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/zookeeper:3.8.4      # 原镜像`zookeeper:3.8.4`
+    container_name: zookeeper3
+    restart: unless-stopped
+    volumes:
+      - "./zookeeper3/data:/data"
+      - "./zookeeper3/datalog:/datalog"
+      - "./zookeeper3/zoo.cfg:/conf/zoo.cfg"
+    environment:
+      ZOO_MY_ID: 3
+    ports:
+      - "2183:2181"
+    networks:
+      zookeeper:
+        ipv4_address: 172.23.0.83

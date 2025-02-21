@@ -1,0 +1,24 @@
+version: '3.8'
+
+# 网桥 -> 方便相互通讯
+networks:
+  zookeeper:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.23.0.0/24"
+
+services:
+  zookeeper:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/zookeeper:3.8.4      # 原镜像`zookeeper:3.8.4`
+    container_name: zookeeper         # 容器名
+    restart: unless-stopped
+    volumes:
+      - "./zookeeper/data:/data"
+      - "./zookeeper/datalog:/datalog"
+      - "./zookeeper/zoo.cfg:/conf/zoo.cfg"
+    ports:
+      - "2181:2181"
+    networks:
+      zookeeper:
+        ipv4_address: 172.23.0.83

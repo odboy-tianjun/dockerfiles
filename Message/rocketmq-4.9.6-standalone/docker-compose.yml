@@ -1,0 +1,51 @@
+version: '3.8'
+
+# 网桥 -> 方便相互通讯
+networks:
+  rocketmq:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.20.0.0/24"
+
+services:
+  namesrv:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/apache-rocketmq:4.9.6
+    container_name: rmqnamesrv
+    ports:
+      - "9876:9876"
+    networks:
+      rocketmq:
+        ipv4_address: 172.20.0.80
+    command: sh mqnamesrv
+  broker:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/apache-rocketmq:4.9.6
+    container_name: rmqbroker
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+      - "10912:10912"
+    environment:
+      - NAMESRV_ADDR=rmqnamesrv:9876
+    volumes:
+      - ./master/broker.conf:/home/rocketmq/rocketmq-4.9.6/conf/broker.conf
+    depends_on:
+      - namesrv
+    networks:
+      rocketmq:
+        ipv4_address: 172.20.0.81
+    command: sh mqbroker -c /home/rocketmq/rocketmq-4.9.6/conf/broker.conf
+  rmqdashboard:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/rocketmq-dashboard:latest
+    container_name: rocketmq-dashboard
+    ports:
+      - "8080:8080"
+    restart: always
+    depends_on:
+      - namesrv
+    networks:
+      rocketmq:
+        ipv4_address: 172.20.0.82
+    environment:
+      - JAVA_OPTS= -Xms256M -Xms512M -Xmn128M -Drocketmq.namesrv.addr=rmqnamesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false
+

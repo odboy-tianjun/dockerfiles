@@ -1,0 +1,58 @@
+version: '3.8'
+
+# 网桥 -> 方便相互通讯
+networks:
+  nacos:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.24.0.0/24"
+
+services:
+  mysql:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/mysql:8.0  # 原镜像`mysql:8.0`
+    container_name: mysql8                                    # 容器名为'mysql8'
+    restart: unless-stopped
+    volumes: # 数据卷挂载路径设置,将本机目录映射到容器目录
+      - "./mysql/my.cnf:/etc/mysql/my.cnf"
+      - "./mysql/data:/var/lib/mysql"
+      #      - "./mysql/conf.d:/etc/mysql/conf.d"
+      - "./mysql/mysql-files:/var/lib/mysql-files"
+      - "./scripts/mysql-schema.sql:/docker-entrypoint-initdb.d/mysql-schema.sql"
+    environment:
+      TZ: Asia/Shanghai
+      LANG: en_US.UTF-8
+      MYSQL_ROOT_PASSWORD: root         # 设置root用户密码
+      MYSQL_DATABASE: nacos              # 初始化的数据库名称
+    privileged: true
+    user: root
+    ports: # 映射端口
+      - "3308:3306"
+    networks:
+      nacos:
+        ipv4_address: 172.24.0.80
+  nacos:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/nacos-server:2.5.0
+    container_name: nacos
+    restart: always
+    ports:
+      # web 界面访问端口
+      - "8848:8848"
+      # 程序使用 grpc 连接的端口
+      - "9848:9848"
+    environment:
+      - MODE=standalone
+      - PREFER_HOST_MODE=hostname
+      - MYSQL_SERVICE_HOST=mysql
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=root
+    volumes:
+      - ./nacos/logs:/home/nacos/logs
+      - ./nacos/conf/application.properties:/home/nacos/conf/application.properties
+    depends_on:
+      - mysql
+    networks:
+      nacos:
+        ipv4_address: 172.24.0.81

@@ -1,0 +1,111 @@
+version: '3.8'
+
+# 网桥 -> 方便相互通讯
+networks:
+  nacos:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.23.0.0/24"
+
+services:
+  mysql:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/mysql:8.0  # 原镜像`mysql:8.0`
+    container_name: mysql8                                    # 容器名为'mysql8'
+    restart: unless-stopped
+    volumes: # 数据卷挂载路径设置,将本机目录映射到容器目录
+      - "./mysql/my.cnf:/etc/mysql/my.cnf"
+      - "./mysql/data:/var/lib/mysql"
+      #      - "./mysql/conf.d:/etc/mysql/conf.d"
+      - "./mysql/mysql-files:/var/lib/mysql-files"
+      - "./scripts/mysql-schema.sql:/docker-entrypoint-initdb.d/mysql-schema.sql"
+    environment:
+      TZ: Asia/Shanghai
+      LANG: en_US.UTF-8
+      MYSQL_ROOT_PASSWORD: root         # 设置root用户密码
+      MYSQL_DATABASE: nacos              # 初始化的数据库名称
+    privileged: true
+    user: root
+    ports: # 映射端口
+      - "3308:3306"
+    networks:
+      nacos:
+        ipv4_address: 172.23.0.80
+  nacos1:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/nacos-server:2.5.0
+    container_name: nacos1
+    hostname: nacos1
+    restart: always
+    ports:
+      - "7848:7848"
+      - "8848:8848"
+      - "9868:9848"
+      - "9850:9849"
+    environment:
+      - PREFER_HOST_MODE=hostname
+      - NACOS_SERVERS=nacos1:8848 nacos2:8848 nacos3:8848
+      - MYSQL_SERVICE_HOST=mysql
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=root
+    volumes:
+      - ./nacos1/logs:/home/nacos/logs
+      - ./nacos1/conf/application.properties:/home/nacos/conf/application.properties
+    depends_on:
+      - mysql
+    networks:
+      nacos:
+        ipv4_address: 172.23.0.81
+  nacos2:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/nacos-server:2.5.0
+    container_name: nacos2
+    hostname: nacos2
+    restart: always
+    ports:
+      - "7849:7848"
+      - "8849:8848"
+      - "9869:9848"
+      - "9851:9849"
+    environment:
+      - PREFER_HOST_MODE=hostname
+      - NACOS_SERVERS=nacos1:8848 nacos2:8848 nacos3:8848
+      - MYSQL_SERVICE_HOST=mysql
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=root
+    volumes:
+      - ./nacos2/logs:/home/nacos/logs
+      - ./nacos2/conf/application.properties:/home/nacos/conf/application.properties
+    depends_on:
+      - mysql
+    networks:
+      nacos:
+        ipv4_address: 172.23.0.82
+  nacos3:
+    image: registry.cn-shanghai.aliyuncs.com/odboy/nacos-server:2.5.0
+    container_name: nacos3
+    hostname: nacos3
+    restart: always
+    ports:
+      - "7850:7848"
+      - "8850:8848"
+      - "9870:9848"
+      - "9852:9849"
+    environment:
+      - PREFER_HOST_MODE=hostname
+      - NACOS_SERVERS=nacos1:8848 nacos2:8848 nacos3:8848
+      - MYSQL_SERVICE_HOST=mysql
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=root
+    volumes:
+      - ./nacos3/logs:/home/nacos/logs
+      - ./nacos3/conf/application.properties:/home/nacos/conf/application.properties
+    depends_on:
+      - mysql
+    networks:
+      nacos:
+        ipv4_address: 172.23.0.83

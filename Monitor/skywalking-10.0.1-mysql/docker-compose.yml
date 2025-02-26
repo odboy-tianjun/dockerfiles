@@ -1,5 +1,5 @@
 # 可参考 https://github.com/apache/skywalking/blob/master/docker/docker-compose.yml
-version: '3'
+version: '3.8'
 
 # 网桥 -> 方便相互通讯
 networks:

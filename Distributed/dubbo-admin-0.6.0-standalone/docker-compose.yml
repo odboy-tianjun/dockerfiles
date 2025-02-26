@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 
 networks:
   dubbo-network:
@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
     volumes:
       # application.properties配置文件可参考：https://github.com/apache/dubbo-admin/blob/develop/docker/latest/application.properties
-      - "./dubbo-admin/config:/config"
+      - "./dubbo-admin/conf:/conf"
     environment:
       "admin.registry.address": zookeeper://172.23.0.81:2181
       "admin.config-center": zookeeper://172.23.0.81:2181
